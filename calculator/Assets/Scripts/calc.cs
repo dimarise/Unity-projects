@@ -1,89 +1,134 @@
-﻿using UnityEngine;
+﻿using System.Globalization;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class calc : MonoBehaviour
 {
     public Text CalculatorWindow;
-    private float _input;
-    private float _input2;
+    private float _number1;
+    private float _number2;
+    private float _currentNumber;
     private float _result;
     private string operation;
-    private bool operationPressed = false;
-
+    private bool operationIsPressed = false;
+    private bool dotIsPressed = false;
     private void Awake()
     {
         Debug.Log("calculator is awaken!");
         CalculatorWindow.text = " ";
     }
 
-    public void NumberButton(int number)
+    public void NumberPressed(int number)
     {
-        if (!operationPressed)
+        if (dotIsPressed)
         {
-            _input = _input != 0 ? (_input * 10) + number : number;
+            _currentNumber = GetFloatedNumber(number, _currentNumber);
+            CalculatorWindow.text = _currentNumber.ToString();
         }
         else
         {
-            _input2 = _input2 != 0 ? (_input2 * 10) + number : number;
+            CheckOperation(number);
         }
-        CalculatorWindow.text += number;
-        Debug.Log("operationPressed " + operationPressed + "input1 = " + _input + "input 2 = " + _input2);
+/*        Debug.Log("operationIsPressed = " + operationIsPressed + "dotispressed " + dotIsPressed);
+        Debug.Log("input 1 = " + _number1 + "input 2 = " + _number2 + "current number" + _currentNumber);*/
     }
-    public void operationButton(string op)
-    {
-        operationPressed = true;
-        operation = op;
-        _input2 = 0.0f;
-        CalculatorWindow.text = _input.ToString() + " " + operation + " ";
 
-        Debug.Log("operationPressed = " + operationPressed + "operation = " + operation);
+    private void CheckOperation(int NumberOnButton)
+    {
+        if (!operationIsPressed)
+        {
+            _number1 = _number1 != 0 ? (_number1 * 10) + NumberOnButton : NumberOnButton;
+            _currentNumber = _number1;
+            CalculatorWindow.text = "" + _currentNumber;
+
+        }
+        else
+        {
+            _number2 = _number2 != 0 ? (_number2 * 10) + NumberOnButton : NumberOnButton;
+            _currentNumber = _number2;
+            CalculatorWindow.text = "" + _currentNumber;
+        }
     }
-    private void EqualButton()
+    private float GetFloatedNumber(int NumberOnButton, float CurrentNumber)
+    {
+        string shouldBeFloat = CurrentNumber.ToString() + "." + NumberOnButton.ToString();
+        return float.Parse(shouldBeFloat, CultureInfo.InvariantCulture.NumberFormat);
+    }
+    public void DotPressed()
+    {
+        dotIsPressed = true;
+        CalculatorWindow.text += ".";
+        Debug.Log("dotIsPressed = " + dotIsPressed + "Currentnumber = " + _currentNumber);
+    }
+    public void OperationPressed(string op)
+    {
+        operationIsPressed = true;
+        dotIsPressed = false;
+        //save 1st number
+        _number1 = _currentNumber;
+        operation = op;
+        _number2 = 0.0f;
+        CalculatorWindow.text = _number1.ToString() + " " + operation + " ";
+
+        Debug.Log("operationPressed = " + operationIsPressed + "operation = " + operation);
+    }
+    public void EqualPressed()
     {
         if (string.IsNullOrEmpty(operation))
         {
-            CalculatorWindow.text = _input.ToString();
+            CalculatorWindow.text = _number1.ToString();
         }
         else
         {
-            string operation1 = operation;
-            switch (operation1)
-            {
-                case "+":
-                    _result = _input + _input2;
-                    break;
-                case "-":
-                    _result = _input - _input2;
-                    break;
-                case "/":
-                    if (_input2 == 0)
-                    {
-                        CalculatorWindow.text = "That's a bullshit!";
-                    }
-                    else
-                    {
-                        _result = _input / _input2;
-                    }
-                    break;
-                case "*":
-                    _result = _input * _input2;
-                    break;
-            }
+            Calculate();
         }
         CalculatorWindow.text = _result.ToString();
-        _input = _result;
+        _currentNumber = _result;
         _result = 0.0f;
-        Debug.Log("operation " + operation + "input1 = " + _input + "input 2 = " + _input2 + "result = " + _result);
     }
+    private void Calculate()
+    {
+        switch (operation)
+        {
+            case "+":
+                _result = _number1 + _currentNumber;
+                break;
+            case "-":
+                _result = _number1 - _currentNumber;
+                break;
+            case "/":
+                if (_currentNumber == 0)
+                {
+                    CalculatorWindow.text = "That's a bullshit!";
+                }
+                else
+                {
+                    _result = _number1 / _currentNumber;
+                }
+                break;
+            case "*":
+                _result = _number1 * _currentNumber;
+                break;
+            default:
+                break;
+        }
+    }
+
+/*    private bool IsFloatedNumber(float number)
+    {
+        string str = number.ToString();
+        return str.Contains(".");
+    }*/
 
     public void ButtonC()
     {
-        _input = 0.0f;
-        _input2 = 0.0f;
+        _number1 = 0.0f;
+        _number2 = 0.0f;
         _result = 0.0f;
-        operationPressed = false;
+        _currentNumber = 0.0f;
+        operationIsPressed = false;
+        dotIsPressed = false;
         operation = "";
         CalculatorWindow.text = "";
-
     }
 }
